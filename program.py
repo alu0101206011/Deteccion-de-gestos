@@ -40,21 +40,29 @@ while (True):
 	
 	if len(contours) != 0:
 		larguestContour = max(contours, key=cv2.contourArea) # mayor contorno
-		cv2.drawContours(roi, larguestContour, -1, (0,255,0),2)
-		hull = cv2.convexHull(larguestContour, returnPoints = False) #Malla convexa
-		#cv2.drawContours(roi, [hull], 0, (255,0,0),2)
-		defects = cv2.convexityDefects(larguestContour,hull)
+		cv2.drawContours(roi, larguestContour, -1, (0,255,0),3)
 
-		for i in defects:
-			s,e,f,d = defects[i,0]
-			start = tuple(larguestContour[s][0])
-			end = tuple(larguestContour[e][0])
-			far = tuple(larguestContour[f][0])
-			depth = d/256.0
-			print(depth)
-			ang = angle(start,end,far)
-			cv2.line(roi,start,end,[255,0,0],2)
-			cv2.circle(roi,far,5,[0,0,255],-1)
+		x,y,w,h = cv2.boundingRect(larguestContour)
+		aspect_ratio = float(w)/h
+		pt3 = (x,y)
+		pt4 = (x+w,y+h)
+		cv2.rectangle(roi,pt3,pt4,(0,0,255),1)
+
+		hull = cv2.convexHull(larguestContour, returnPoints = False) #Malla convexa
+		defects = cv2.convexityDefects(larguestContour,hull)
+		
+		if defects is not None:
+			for i in range(len(defects)):
+				s,e,f,d = defects[i,0]
+				start = tuple(larguestContour[s][0])
+				end = tuple(larguestContour[e][0])
+				far = tuple(larguestContour[f][0])
+				depth = d/256.0
+				print(depth)
+				ang = angle(start,end,far)
+				if 0.3*h < depth and ang < 90:
+					cv2.line(roi,start,end,[255,0,0],2)
+					cv2.circle(roi,far,5,[0,0,255],-1)
 
 
 	cv2.rectangle(frame,pt1,pt2,(255,0,0))
