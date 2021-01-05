@@ -99,12 +99,21 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
+	  double perimeter = arcLength(contours[i]);
+	  std::cout << "Perimeter: " << arcLength(contours[i],True) << std::endl;
+	  std::cout << "Area: " << contourArea(contours[i]) << std::endl;
+	  std::cout << "Height: " << boundRect.size().height << std::endl;
+
+
       int substract = boundRect.size().height - boundRect.size().width;
 			// Gestos
-      // Spock
-      if (numDefects == 2 && substract < boundRect.size().height * 0.3 && ) {
-          std::cout << "Soy Spock\n";
-      } else if(substract < boundRect.size().height * 0.3 && !numDefects) { // Contar dedos
+			if (numDefects == 2 && contourArea(contours[i])/boundRect.size().height < 100 && contourArea(contours[i])/boundRect.size().height > 75) {
+				string text = "Spock"; 
+				Point textPoint(frame.cols - getTextSize(text, FONT_HERSHEY_SCRIPT_SIMPLEX, 1, 3, 0).width, 
+				                frame.rows - getTextSize(text, FONT_HERSHEY_SCRIPT_SIMPLEX, 1, 3, 0).height);
+				putText(frame, text, textPoint, FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar::all(255), 3, 8);
+			}
+            else if(substract < boundRect.size().height * 0.3 && !numDefects) { // Contar dedos
 				string text = "Dedos levantados: " + to_string(numDefects);
 				Point textPoint(frame.cols - getTextSize(text, FONT_HERSHEY_SCRIPT_SIMPLEX, 1, 3, 0).width, 
 				                frame.rows - getTextSize(text, FONT_HERSHEY_SCRIPT_SIMPLEX, 1, 3, 0).height);

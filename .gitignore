@@ -127,3 +127,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+In c++/cmake_install.cmake
+.gitignore
+In c++/CMakeCache.txt
+In c++/Makefile
+In c++/CMakeFiles/CMakeDirectoryInformation.cmake
+In c++/CMakeFiles/CMakeDirectoryInformation.cmake
+In c++/CMakeFiles/CMakeDirectoryInformation.cmake
+In c++/CMakeFiles/CMakeDirectoryInformation.cmake
+In c++/CMakeFiles/Makefile.cmake
+In c++/CMakeFiles/CMakeDirectoryInformation.cmake
+In c++/webcam
