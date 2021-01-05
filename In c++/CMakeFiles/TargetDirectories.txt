@@ -1,0 +1,3 @@
+/home/anabel/Escritorio/Dispositivos-de-interacci-n-gestuales/CMakeFiles/rebuild_cache.dir
+/home/anabel/Escritorio/Dispositivos-de-interacci-n-gestuales/CMakeFiles/webcam.dir
+/home/anabel/Escritorio/Dispositivos-de-interacci-n-gestuales/CMakeFiles/edit_cache.dir

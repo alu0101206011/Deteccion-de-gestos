@@ -30,7 +30,7 @@ while (True):
 	ret,frame=cap.read()
 	if not ret:
 		exit(0)
-	
+
 	frame = cv2.flip(frame,1)
 
 	roi = frame[pt1[1]:pt2[1],pt1[0]:pt2[0],:].copy() # Muestra todo lo que tenga el rectangulo que se encuentra en frame en ROI
@@ -50,7 +50,7 @@ while (True):
 
 		hull = cv2.convexHull(larguestContour, returnPoints = False) #Malla convexa
 		defects = cv2.convexityDefects(larguestContour,hull)
-		
+
 		if defects is not None:
 			for i in range(len(defects)):
 				s,e,f,d = defects[i,0]
@@ -63,7 +63,6 @@ while (True):
 				if 0.3*h < depth and ang < 90:
 					cv2.line(roi,start,end,[255,0,0],2)
 					cv2.circle(roi,far,5,[0,0,255],-1)
-
 
 	cv2.rectangle(frame,pt1,pt2,(255,0,0))
 	cv2.imshow('frame',frame)
@@ -80,13 +79,3 @@ cap.release()
 cv2.destroyAllWindows()
 
 
-
-
-#size_t maxSizeContours(vector<vector<Point> > contours) {
-#	unsigned max = contours[0].size();
-#	size_t contourNumber = 0;
-#	for (size_t i = 0; i < contours.size(); i++)
-#		if (contours[i].size() > max) 
-#			contourNumber = i;
-#	return contourNumber;
-#}
