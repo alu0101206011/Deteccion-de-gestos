@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
@@ -7,22 +8,56 @@
 
 using namespace cv;
 using namespace std;
+//s = B
+//e = A
+//f = O
+//( (ax-ox)*(by-oy)+(ay-oy)*(bx-ox) ) / ( (ax-ox)*(bx-ox)-(ay-oy)*(by-oy) 
 
+/*     double angle(Point P1, Point P2, Point P3) {
+        double numerator = P2.y*(P1.x-P3.x) + P1.y*(P3.x-P2.x) + P3.y*(P2.x-P1.x);
+        double denominator = (P2.x-P1.x)*(P1.x-P3.x) + (P2.y-P1.y)*(P1.y-P3.y);
+        double ratio = numerator/denominator;
+
+        double angleRad = atanhf64x(ratio);
+        double angleDeg = (angleRad*180)/CV_PI;
+
+        if(angleDeg<0){
+            angleDeg = 180+angleDeg;
+        }
+
+        return angleDeg;
+    } */
+
+/*
+ double (Point s, Point e, Point f) {
+	double numerator = e.y * (s.x - f.x) + s.y * (f.x - e.x) + f.y * (e.x - s.x);
+	double denominator = (e.x - s.x)*(s.x - f.x) + (e.y - s.y)*(s.y - f.y);
+	double ratio = numerator/denominator;
+
+	double angleRad = atanhf64x(ratio);
+  double angleDeg = (angleRad*180)/CV_PI;
+
+  if(angleDeg < 0){
+    angleDeg = 180+angleDeg;
+  }
+
+	return angleDeg;
+}  */
 
 double angle(Point s, Point e, Point f) {
-	double v1[2], v2[2];
-	v1[0] = s.x - f.x;
-	v1[1] = s.y - f.y;
-	v2[0] = e.x - f.x;
-	v2[1] = e.x - f.x;
-	double ang1 = atan2(v1[1], v1[0]);
-	double ang2 = atan2(v2[1], v2[0]);
+  double v1[2],v2[2];
+  v1[0] = s.x - f.x;
+  v1[1] = s.y - f.y;
+  v2[0] = e.x - f.x;
+  v2[1] = e.x - f.x;
+  double ang1 = atan2(v1[1], v1[0]);
+  double ang2 = atan2(v2[1], v2[0]);
 
-	double ang = ang1 - ang2;
-	if (ang > CV_PI) ang -= 2 * CV_PI;
-	if (ang < -CV_PI) ang += 2 * CV_PI;
+  double ang = ang1 - ang2;
+  if (ang > CV_PI) ang -= 2*CV_PI; // (270) - 2*180 = -90
+  if (ang < -CV_PI) ang += 2*CV_PI; // 
 
-	return ang * 180 / CV_PI;
+  return ang*180/CV_PI;
 }
 
 size_t maxSizeContours(vector<vector<Point> > contours) {
@@ -55,6 +90,9 @@ int main(int argc, char* argv[]) {
 
 	Rect rect(400, 100, 200, 200);
 	int numDefects = 0;
+	int k = 0;
+  bool drawOption = false;
+  vector<Point> initial;
 	while (true) {
 
 		cap>>frame;
@@ -82,9 +120,11 @@ int main(int argc, char* argv[]) {
 			convexHull(contours[i], hull, false, false);
 			sort(hull.begin(), hull.end(), greater <int>());
 
-			std::cout << "Area: " << contourArea(contours[i]) << "\n";
+			//std::cout << "Area: " << contourArea(contours[i]) << "\n";
 
 			vector<Vec4i> defects;
+			vector<double> angles;
+      
 			convexityDefects(contours[i], hull, defects);
 			for (int j = 0; j < defects.size(); j++) {
 				Point s = contours[i][defects[j][0]];  // Punto inicial
@@ -92,28 +132,51 @@ int main(int argc, char* argv[]) {
 				Point f = contours[i][defects[j][2]];  // Punto más lejano
 				float depth = (float)defects[j][3] / 256.0;  // Distancia en pixeles desde la malla hasta el punto más lejano a ella
 				double ang = angle(s, e, f);
+        //std::cout << "Angles: " << ang << "\n";
 				if (0.3*heightRect < depth && ang < 90) {
 					circle(roi, f, 5, Scalar(0, 0, 255), -1);
 					line(roi, s, e, Scalar(255, 0, 0), 2);
+					angles.push_back(ang);
 					numDefects++;
+          std::cout << "Angles: " << ang << "\n";
+          if (numDefects == 1 && drawOption) {
+            initial.push_back(e);
+          }
 				}
 			}
-
-	  double perimeter = arcLength(contours[i]);
-	  std::cout << "Perimeter: " << arcLength(contours[i],True) << std::endl;
-	  std::cout << "Area: " << contourArea(contours[i]) << std::endl;
-	  std::cout << "Height: " << boundRect.size().height << std::endl;
+      if (drawOption) {
+        vector<Scalar> color;
+        color.push_back(Scalar(0, 255, 255));
+        color.push_back(Scalar(255, 255, 0));
+        color.push_back(Scalar(255, 0, 255));
+        if (numDefects == 2) {
+          if (k%3 == 0) {
+		  	    k = 1;
+          } else if (k%3 == 1) {
+            k = 2;
+          } else if (k%3 == 2) {
+            k = 0;
+          }
+        } else if (initial.size() > 1)
+          for (int j = 1; j < initial.size(); j++)
+            line(roi, initial[j - 1], initial[j], color[k], 2);
+        if (numDefects == 4) initial.clear();
+      }
+      double perimeter = arcLength(contours[i], true);
+      //std::cout << "Perimeter: " << perimeter << std::endl;
+      //std::cout << "Area: " << contourArea(contours[i]) << std::endl;
+      //std::cout << "Height: " << boundRect.size().height << std::endl;
 
 
       int substract = boundRect.size().height - boundRect.size().width;
 			// Gestos
-			if (numDefects == 2 && contourArea(contours[i])/boundRect.size().height < 100 && contourArea(contours[i])/boundRect.size().height > 75) {
+			if (numDefects == 2 && ((angles[0] < 50 && angles[1] > 60) || (angles[0] > 60 && angles[1] < 50))) {
+				std::cout << "Angles: " << angles[0] << " y " << angles[1] << "\n";
 				string text = "Spock"; 
 				Point textPoint(frame.cols - getTextSize(text, FONT_HERSHEY_SCRIPT_SIMPLEX, 1, 3, 0).width, 
 				                frame.rows - getTextSize(text, FONT_HERSHEY_SCRIPT_SIMPLEX, 1, 3, 0).height);
 				putText(frame, text, textPoint, FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar::all(255), 3, 8);
-			}
-            else if(substract < boundRect.size().height * 0.3 && !numDefects) { // Contar dedos
+			} else if(substract < boundRect.size().height * 0.3 && !numDefects) { // Contar dedos
 				string text = "Dedos levantados: " + to_string(numDefects);
 				Point textPoint(frame.cols - getTextSize(text, FONT_HERSHEY_SCRIPT_SIMPLEX, 1, 3, 0).width, 
 				                frame.rows - getTextSize(text, FONT_HERSHEY_SCRIPT_SIMPLEX, 1, 3, 0).height);
@@ -126,15 +189,21 @@ int main(int argc, char* argv[]) {
 			}
 			numDefects = 0;
 		}
+
+	
+
 		imshow("Frame",frame);
 		imshow("ROI", roi);
 		imshow("Foreground Mask", fgMask);
 
 		int c = waitKey(40);
-		if ((char)c == 'v') {
-			l_rate = 0;
-		}
-		if ((char)c == 'q') break;
+		if ((char)c == 'v') l_rate = 0;
+    if ((char)c == 'd' && !drawOption) {
+      drawOption = true;
+    } else if ((char)c == 'd' && drawOption) {
+      drawOption = false;
+    }
+    if ((char)c == 'q') break;
 	}
 	cap.release();
 	destroyAllWindows();
