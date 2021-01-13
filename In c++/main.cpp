@@ -1,3 +1,18 @@
+/// Universidad de La Laguna
+/// Escuela Superior de Ingeniería y Tecnología
+/// Grado en Ingeniería Informática
+/// Sistemas de interacción persona-computador
+///
+/// @author Jaime Pablo Pérez Moro <alu0101278919@ull.edu.es>
+/// @author Anabel Díaz Labrador <alu0101206011@ull.edu.es>
+/// @date 13-01-2021
+/// @brief Programa que detecta el número de dedos levantados, gestos y 
+/// en el que podemos dibujar con algunas funcionalidades, como cambiar el color
+/// y borrar lo dibujado
+///
+/// Esto ha sido posible gracias a open cv
+
+
 #include <iostream>
 #include <vector>
 #include <opencv2/imgcodecs.hpp>
@@ -9,6 +24,7 @@
 using namespace cv;
 using namespace std;
 
+// Función que devuelve el ángulo formado por esos 3 puntos en grados
 double angle(Point s, Point e, Point f) {
   double v1[2],v2[2];
   v1[0] = s.x - f.x;
@@ -25,6 +41,7 @@ double angle(Point s, Point e, Point f) {
   return ang*180/CV_PI;
 }
 
+// Función que devuelve el contorno más grande
 size_t maxSizeContours(vector<vector<Point> > contours) {
   unsigned max = contours[0].size();
   size_t contourNumber = 0;
@@ -48,9 +65,9 @@ int main(int argc, char* argv[]) {
   }
   namedWindow("Frame");
   namedWindow("ROI");  // Ventana con la mano
-  namedWindow("Foreground Mask");
+  namedWindow("Foreground Mask"); 
 
-  int l_rate = -1;
+  int l_rate = -1;  // Por defecto aprende automáticamente
 
   Rect rect(400, 100, 200, 200);
   int numDefects = 0;
@@ -60,7 +77,7 @@ int main(int argc, char* argv[]) {
   while (true) {
 
     cap>>frame;
-    flip(frame, frame, 1);
+    flip(frame, frame, 1);  // Le damos la vuelta a la cámara
     
     frame(rect).copyTo(roi);  // Muestra todo lo que tenga el rectangulo que se encuentra en frame en ROI
 
@@ -74,9 +91,9 @@ int main(int argc, char* argv[]) {
     if (contours.size() != 0) {
       size_t i = maxSizeContours(contours);  // ES PELIGROSO SOLO TENER EN CUENTA UN CONTORNO
 
-      drawContours(roi, contours, i, Scalar(0,255,0), 2);
+      drawContours(roi, contours, i, Scalar(0,255,0), 2);  // Dibuja el contorno elegido i
 
-      Rect boundRect = boundingRect(contours[i]);
+      Rect boundRect = boundingRect(contours[i]); 
       rectangle(roi, boundRect, Scalar(0,0,255), 1);
 
       const int heightRect = boundRect.size().height;
